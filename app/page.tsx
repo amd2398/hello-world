@@ -1,30 +1,82 @@
-import { supabase } from "@/lib/supabase";
+// import { supabase } from "@/lib/supabase";
+//
+// export default async function Home() {
+//     const { data: movies, error } = await supabase
+//         .from("movies")
+//         .select("*");
+//
+//     if (error) {
+//         return (
+//             <main>
+//                 <h1>Error loading movies</h1>
+//                 <p>{error.message}</p>
+//             </main>
+//         );
+//     }
+//
+//     return (
+//         <main>
+//             <h1>My Movies</h1>
+//
+//             <ul>
+//                 {movies.map((movie) => (
+//                     <li key={movie.id}>
+//                         {movie.title} - {movie.genre}
+//                     </li>
+//                 ))}
+//             </ul>
+//         </main>
+//     );
+// }
+
+import LoginButton from "./login-button";
+import { createClient } from "@/lib/supabase-server";
+import ProfileForm from "./profile-form";
 
 export default async function Home() {
-    const { data: movies, error } = await supabase
-        .from("movies")
-        .select("*");
+    const supabase = await createClient();
 
-    if (error) {
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
         return (
-            <main>
-                <h1>Error loading movies</h1>
-                <p>{error.message}</p>
+            <main style={{ padding: "40px" }}>
+                <h1 style={{ fontSize: "40px", marginBottom: "20px" }}>
+                    Welcome
+                </h1>
+
+                <LoginButton />
             </main>
         );
     }
 
-    return (
-        <main>
-            <h1>My Movies</h1>
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", user.id)
+        .single();
 
-            <ul>
-                {movies.map((movie) => (
-                    <li key={movie.id}>
-                        {movie.title} - {movie.genre}
-                    </li>
-                ))}
-            </ul>
+    return (
+        <main style={{ padding: "40px" }}>
+            <h1 style={{ fontSize: "40px", marginBottom: "20px" }}>
+                Welcome
+            </h1>
+
+            <p style={{ fontSize: "20px", marginBottom: "20px" }}>
+                Logged in as {user.email}
+            </p>
+
+            {(!profile?.first_name || !profile?.last_name) && (
+                <div>
+                    <p style={{ fontSize: "20px", marginBottom: "15px" }}>
+                        Please complete your profile by adding your first and last name.
+                    </p>
+
+                    <ProfileForm userId={user.id} />
+                </div>
+            )}
         </main>
     );
 }
