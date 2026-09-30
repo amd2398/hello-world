@@ -32,6 +32,7 @@
 import LoginButton from "./login-button";
 import { createClient } from "@/lib/supabase-server";
 import ProfileForm from "./profile-form";
+import Link from "next/link";
 
 export default async function Home() {
     const supabase = await createClient();
@@ -40,6 +41,7 @@ export default async function Home() {
         data: { user },
     } = await supabase.auth.getUser();
 
+    // Not logged in
     if (!user) {
         return (
             <main style={{ padding: "40px" }}>
@@ -52,6 +54,7 @@ export default async function Home() {
         );
     }
 
+    // Get logged-in user's profile
     const { data: profile } = await supabase
         .from("profiles")
         .select("first_name, last_name")
@@ -67,6 +70,18 @@ export default async function Home() {
             <p style={{ fontSize: "20px", marginBottom: "20px" }}>
                 Logged in as {user.email}
             </p>
+
+            <div
+                style={{
+                    display: "flex",
+                    gap: "20px",
+                    marginBottom: "30px",
+                    fontSize: "18px",
+                }}
+            >
+                <Link href="/profile">Profile</Link>
+                <Link href="/dashboard">Dashboard</Link>
+            </div>
 
             {(!profile?.first_name || !profile?.last_name) && (
                 <div>
